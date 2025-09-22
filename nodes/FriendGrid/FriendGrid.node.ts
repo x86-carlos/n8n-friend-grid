@@ -6,8 +6,6 @@ import {
 	IExecuteFunctions
 } from 'n8n-workflow';
 
-import axios from 'axios';
-
 export class FriendGrid implements INodeType {
 	description: INodeTypeDescription = {
 		displayName:'FriendGrid',
@@ -19,11 +17,13 @@ export class FriendGrid implements INodeType {
 		defaults: {
 			name: 'friendGrid',
 		},
-		input: ['main'],
-		output: ['main'],
+		inputs: ['main'],
+		outputs: ['main'],
 		credentials: [
-			name: 'friendGridApi',
-			required: true,
+			{
+				name: 'friendGridApi',
+				required: true,
+			},
 		],
 
 		properties: [
@@ -49,7 +49,7 @@ export class FriendGrid implements INodeType {
 				displayName: 'Opeartion',
 				name: 'operation',
 				type: 'options',
-				displayOpetions: {
+				displayOptions: {
 					show: {
 						resource: [
 							'contact',
@@ -59,7 +59,7 @@ export class FriendGrid implements INodeType {
 				options: [
 					{
 						name: 'Create',
-						value: 'create,
+						value: 'create',
 						description: 'Create a new contact',
 						action: 'Create a new contact',
 					},
@@ -93,7 +93,7 @@ export class FriendGrid implements INodeType {
 				name: 'additionalFields',
 				type: 'collection',
 				placeholder: 'Add Fields',
-				defaults: {},
+				default: {},
 				displayOptions: {
 					show: {
 						resource: [
@@ -116,7 +116,7 @@ export class FriendGrid implements INodeType {
 						displayName: 'Last Name',
 						name: 'lastName',
 						type: 'string',
-						defaults: ' ',
+						default: ' ',
 					},
 				],
 			},
@@ -128,37 +128,37 @@ export class FriendGrid implements INodeType {
 		const items = this.getInputData();
 		let responseData;
 		const returnData = [];
-		const resources = this.getNodeParameter('resource', 0) as string;
+		const resource = this.getNodeParameter('resource', 0) as string;
 		const operation = this.getNodeParameter('operation', 0) as string;
 
 		for(let i = 0; i < items.length; i++) {
 			if(resource === 'contact') {
 				if(operation === 'create') {
-					const additionalFileds = this.getNodeParameter('additionalFields', i) as IDataObject;
+					const email = this.getNodeParameter('email', i) as string;
+					const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
 					const data: IDataObject = {
 						email,
 					};
 
 					Object.assign(data, additionalFields);
 
-					const axiosOptions = {
+					const options = {
 						headers: {
 							'Accept': 'application/json',
-							'Content-Type': 'application/json',
 						},
-						method: 'put',
-						data: {
+						body: {
 							contacts: [
 								data,
 							],
 						},
-						url: `https://api.sendgrid.com/v3/marketing/contacts`,
+						uri: `https://api.sendgrid.com/v3/marketing/contacts`,
+						json: true,
 					};
 
 					try {
-						responseData = await this.helpers.requestWithAuthentication.call(this, 'friendGridApi', axiosOptions);
+						responseData = await this.helpers.requestWithAuthentication.call(this, 'friendGridApi', options);
 						returnData.push(responseData);
-					} catch {
+					} catch(error) {
 						throw new Error(`SendGrid API error: ${error.message}`);
 					}
 				}

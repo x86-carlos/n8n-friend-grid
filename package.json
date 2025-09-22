@@ -33,10 +33,10 @@
   "n8n": {
     "n8nNodesApiVersion": 1,
     "credentials": [
-      "dist/credentials/FriendGrid.credentials.js",
+      "dist/credentials/FriendGrid.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/FriendGrid/FriendGrid.node.js",
+      "dist/nodes/FriendGrid/FriendGrid.node.js"
     ]
   },
   "devDependencies": {
