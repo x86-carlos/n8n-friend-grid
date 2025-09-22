@@ -6,6 +6,8 @@ import {
 	IExecuteFunctions
 } from 'n8n-workflow';
 
+import axios from 'axios';
+
 export class FriendGrid implements INodeType {
 	description: INodeTypeDescription = {
 		displayName:'FriendGrid',
@@ -123,6 +125,45 @@ export class FriendGrid implements INodeType {
 	}; //fim descrição
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
+		const items = this.getInputData();
+		let responseData;
+		const returnData = [];
+		const resources = this.getNodeParameter('resource', 0) as string;
+		const operation = this.getNodeParameter('operation', 0) as string;
 
+		for(let i = 0; i < items.length; i++) {
+			if(resource === 'contact') {
+				if(operation === 'create') {
+					const additionalFileds = this.getNodeParameter('additionalFields', i) as IDataObject;
+					const data: IDataObject = {
+						email,
+					};
+
+					Object.assign(data, additionalFields);
+
+					const axiosOptions = {
+						headers: {
+							'Accept': 'application/json',
+							'Content-Type': 'application/json',
+						},
+						method: 'put',
+						data: {
+							contacts: [
+								data,
+							],
+						},
+						url: `https://api.sendgrid.com/v3/marketing/contacts`,
+					};
+
+					try {
+						responseData = await this.helpers.requestWithAuthentication.call(this, 'friendGridApi', axiosOptions);
+						returnData.push(responseData);
+					} catch {
+						throw new Error(`SendGrid API error: ${error.message}`);
+					}
+				}
+			}
+		}
+		return [this.helpers.returnJsonArray(returnData)];
 	} //fim função execute
 } // fim classe
